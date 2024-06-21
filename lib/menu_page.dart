@@ -21,7 +21,9 @@ class MainMenuPage extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                           builder: (context) => const HostLobbyPage()),
-                    );
+                    ).then((_) {
+                      ScaffoldMessenger.of(context).clearSnackBars();
+                    });
                   },
                   child: const Text("HOST"))),
           const Padding(

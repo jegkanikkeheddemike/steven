@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:steven/host/user.dart';
 
@@ -18,32 +17,70 @@ class HostLobbyPageState extends State<HostLobbyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text("Hosting!"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).clearSnackBars();
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(inviteSnackbar(context));
-              },
-              child: const Text("Invite"),
+      appBar: AppBar(
+        title: const Text("Hosting"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).clearSnackBars();
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(inviteSnackbar(context));
+            },
+            child: const Text("Invite"),
+          )
+        ],
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (users.isEmpty) ...[
+            const Center(
+                child: Text(
+              "No users?? Add or invite your friends",
+              style: TextStyle(fontSize: 35),
+            ))
+          ] else ...[
+            Wrap(
+              direction: Axis.horizontal,
+              spacing: 20,
+              children: users.map((u) => Text(u.toString())).toList(),
             )
           ],
-        ),
-        body: showUsers(context));
+          addLocalUserWidget(context)
+        ],
+      ),
+    );
   }
 
-  Widget showUsers(BuildContext context) {
-    if (users.isEmpty) {
-      return const Center(
-          child: Text(
-        "No users?? Add or invite your friends",
-        style: TextStyle(fontSize: 35),
-      ));
-    }
+  TextEditingController localUserController = TextEditingController();
 
-    throw UnimplementedError();
+  Widget addLocalUserWidget(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(5),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: localUserController,
+              decoration: const InputDecoration(hintText: "Add local player"),
+              onChanged: (value) {
+                setState(() {});
+              },
+            ),
+          ),
+          TextButton(
+              onPressed: localUserController.text.isEmpty
+                  ? null
+                  : () {
+                      setState(() {
+                        users.add(User(localUserController.text));
+                        localUserController.clear();
+                      });
+                    },
+              child: const Text("Add")),
+        ],
+      ),
+    );
   }
 
   SnackBar inviteSnackbar(BuildContext context) {

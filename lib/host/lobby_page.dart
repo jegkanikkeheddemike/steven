@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:steven/host/user.dart';
+import 'package:steven/socket.dart';
 
 class HostLobbyPage extends StatefulWidget {
-  const HostLobbyPage({super.key});
+  const HostLobbyPage(this.conn, {super.key});
+  final Conn conn;
 
   @override
   State<StatefulWidget> createState() {
@@ -62,7 +64,7 @@ class HostLobbyPageState extends State<HostLobbyPage> {
           Expanded(
             child: TextField(
               controller: localUserController,
-              decoration: const InputDecoration(hintText: "Add local player"),
+              decoration: const InputDecoration(hintText: "Add player"),
               onChanged: (value) {
                 setState(() {});
               },

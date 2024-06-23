@@ -13,7 +13,8 @@ class User {
 }
 
 class OnlineData {
-  const OnlineData(this.userID, this.deviceName);
+  const OnlineData(this.userID, this.deviceName, this.clientID);
   final String userID;
   final String deviceName;
+  final int clientID;
 }

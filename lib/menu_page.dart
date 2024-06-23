@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:steven/host/lobby_page.dart';
+import 'package:steven/socket.dart';
 
 class MainMenuPage extends StatelessWidget {
-  const MainMenuPage({super.key});
-
+  const MainMenuPage(this.conn, {super.key});
+  final Conn conn;
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -20,7 +21,7 @@ class MainMenuPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const HostLobbyPage()),
+                          builder: (context) => HostLobbyPage(conn)),
                     ).then((_) {
                       ScaffoldMessenger.of(context).clearSnackBars();
                     });

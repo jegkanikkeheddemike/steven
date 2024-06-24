@@ -48,6 +48,7 @@ enum SocketMsg {
     ConfirmPong(Vec<u8>),
     ClientPong(ClientID, Vec<u8>),
     CreateLobby(ClientID),
+    UserAdd(ClientID, u16, String),
 }
 
 static PING_SLEEP: AtomicBool = AtomicBool::new(false);
@@ -99,6 +100,28 @@ fn main_loop(msg_rx: Receiver<SocketMsg>) {
                     lobbies.remove(&lobby_id);
                 }
             }
+            SocketMsg::UserAdd(_, lobby_id, username) => {
+                //ClientID is ignored for now, when device names are implemented it will be needed
+
+                let Some(lobby) = lobbies.get_mut(&lobby_id) else {
+                    eprintln!("Tried to add user {username} to invalid lobby {lobby_id}");
+                    continue;
+                };
+                lobby.users.push(username.clone());
+
+                for client_id in &lobby.devices {
+                    let Some(client) = clients.get_mut(client_id) else {
+                        eprintln!("Client {client_id:?} no longer exists");
+                        continue;
+                    };
+                    let msg = json!({"req": "UserAdd", "name": username, "device": "somewhere"});
+
+                    if let Err(_) = client.send_message(&OwnedMessage::Text(msg.to_string())) {
+                        clients.remove(client_id);
+                    }
+                }
+            }
+
             SocketMsg::ClientConnected(client_id, writer) => {
                 clients.insert(client_id, writer);
             }
@@ -167,6 +190,7 @@ fn inner_client_loop(
     #[derive(Debug, serde::Deserialize)]
     enum ClientMsg {
         CreateLobby,
+        UserAdd(u16, String),
     }
 
     loop {
@@ -187,6 +211,9 @@ fn inner_client_loop(
                 match msg {
                     ClientMsg::CreateLobby => {
                         msg_sx.send(SocketMsg::CreateLobby(client_id))?;
+                    }
+                    ClientMsg::UserAdd(lobby_id, username) => {
+                        msg_sx.send(SocketMsg::UserAdd(client_id, lobby_id, username))?;
                     }
                 }
             }
@@ -224,6 +251,12 @@ impl Debug for SocketMsg {
             SocketMsg::ConfirmPong(_) => f.debug_tuple("ConfirmPong").finish(),
             SocketMsg::ClientPong(arg0, _) => f.debug_tuple("ClientPong").field(arg0).finish(),
             SocketMsg::CreateLobby(arg0) => f.debug_tuple("CreateLobby").field(arg0).finish(),
+            SocketMsg::UserAdd(arg0, arg1, arg2) => f
+                .debug_tuple("UserAdd")
+                .field(arg0)
+                .field(arg1)
+                .field(arg2)
+                .finish(),
         }
     }
 }

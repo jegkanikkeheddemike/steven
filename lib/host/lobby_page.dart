@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:steven/host/user.dart';
 import 'package:steven/socket.dart';
 
 class HostLobbyPage extends StatefulWidget {
@@ -44,33 +43,36 @@ class HostLobbyPageState extends State<HostLobbyPage> {
         ],
       ),
       body: Center(
-        child: lobby == null
-            ? const Center(
-                child: Text(
-                "Creating Lobby",
-                style: TextStyle(fontSize: 35),
-              ))
-            : ListenableBuilder(
-                listenable: lobby!,
-                builder: (context, _) {
-                  return Column(children: [
-                    Wrap(
-                      direction: Axis.horizontal,
-                      spacing: 20,
-                      children:
-                          lobby!.users.map((u) => Text(u.toString())).toList(),
-                    ),
-                    addLocalUserWidget(context)
-                  ]);
-                },
-              ),
-      ),
+          child: switch (lobby) {
+        null => const Center(
+              child: Text(
+            "Creating Lobby",
+            style: TextStyle(fontSize: 35),
+          )),
+        var lobby => ListenableBuilder(
+            listenable: lobby,
+            builder: (context, _) {
+              return Column(children: [
+                Text(
+                  "Lobby ${lobby.lobbyNr}",
+                  style: const TextStyle(fontSize: 35),
+                ),
+                Wrap(
+                  direction: Axis.horizontal,
+                  spacing: 20,
+                  children: lobby.users.map((u) => Text(u.toString())).toList(),
+                ),
+                addLocalUserWidget(context, lobby)
+              ]);
+            },
+          ),
+      }),
     );
   }
 
   TextEditingController localUserController = TextEditingController();
 
-  Widget addLocalUserWidget(BuildContext context) {
+  Widget addLocalUserWidget(BuildContext context, Lobby lobby) {
     return Padding(
       padding: const EdgeInsets.all(5),
       child: Row(
@@ -89,7 +91,7 @@ class HostLobbyPageState extends State<HostLobbyPage> {
                   ? null
                   : () {
                       setState(() {
-                        //users.add(User(localUserController.text));
+                        widget.conn.addUser(localUserController.text, lobby);
                         localUserController.clear();
                       });
                     },

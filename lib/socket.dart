@@ -35,6 +35,8 @@ class Conn extends ChangeNotifier {
           print(msg);
         }
       });
+
+      handlers["UserAdd"] = _userAdd;
     });
   }
   // Map of handlers. Return true to retain
@@ -51,6 +53,41 @@ class Conn extends ChangeNotifier {
 
     return await onLobbyResponse.future;
   }
+
+  Future<void> addUser(String name, Lobby lobby) async {
+    Completer<void> onUserAdded = Completer();
+    handlers["UserAdded"] = (data) {
+      if (data == name) {
+        onUserAdded.complete();
+        return false;
+      }
+      return true;
+    };
+    socket.sink.add(jsonEncode({
+      "UserAdd": [lobby.lobbyNr, name]
+    }));
+
+    await onUserAdded.future;
+  }
+
+  bool _userAdd(dynamic dynData) {
+    Map<String, dynamic> data = dynData as Map<String, dynamic>;
+
+    switch (lobby) {
+      case null:
+        print("Received UserAdd without lobby");
+      case var lobby:
+        if (lobby.lobbyNr != data["lobby"]) {
+          print("Reveived UserAdd of invalid lobby: ${data["lobby"]}");
+          return true;
+        }
+        var newuser =
+            User(data["name"], onlineData: OnlineData(data["device"]));
+        lobby._addUser(newuser);
+    }
+
+    return true;
+  }
 }
 
 class Lobby extends ChangeNotifier {
@@ -58,6 +95,11 @@ class Lobby extends ChangeNotifier {
   final int lobbyNr;
 
   List<User> users = [];
+
+  void _addUser(User user) {
+    users.add(user);
+    notifyListeners();
+  }
 }
 
 enum ConnState {

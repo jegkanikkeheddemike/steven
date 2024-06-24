@@ -114,7 +114,7 @@ fn main_loop(msg_rx: Receiver<SocketMsg>) {
                         eprintln!("Client {client_id:?} no longer exists");
                         continue;
                     };
-                    let msg = json!({"req": "UserAdd", "data": {"name": username, "device": "somewhere"}});
+                    let msg = json!({"req": "UserAdd", "data": {"name": username, "device": "somewhere", "lobby": lobby_id}});
 
                     if let Err(_) = client.send_message(&OwnedMessage::Text(msg.to_string())) {
                         clients.remove(client_id);

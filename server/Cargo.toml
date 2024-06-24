@@ -7,3 +7,6 @@ edition = "2021"
 websocket = "*"
 anyhow = "*"
 uuid = {version = "*", features = ["v4"]}
+serde = {version="*", features = ["derive"]}
+serde_json = "*"
+rand = "*"

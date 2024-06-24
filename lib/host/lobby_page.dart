@@ -14,7 +14,18 @@ class HostLobbyPage extends StatefulWidget {
 }
 
 class HostLobbyPageState extends State<HostLobbyPage> {
-  List<User> users = [];
+  Lobby? lobby;
+
+  @override
+  void initState() {
+    super.initState();
+
+    widget.conn.createLobby().then((newLobby) {
+      setState(() {
+        lobby = newLobby;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,24 +43,27 @@ class HostLobbyPageState extends State<HostLobbyPage> {
           )
         ],
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (users.isEmpty) ...[
-            const Center(
+      body: Center(
+        child: lobby == null
+            ? const Center(
                 child: Text(
-              "No users?? Add or invite your friends",
-              style: TextStyle(fontSize: 35),
-            ))
-          ] else ...[
-            Wrap(
-              direction: Axis.horizontal,
-              spacing: 20,
-              children: users.map((u) => Text(u.toString())).toList(),
-            )
-          ],
-          addLocalUserWidget(context)
-        ],
+                "Creating Lobby",
+                style: TextStyle(fontSize: 35),
+              ))
+            : ListenableBuilder(
+                listenable: lobby!,
+                builder: (context, _) {
+                  return Column(children: [
+                    Wrap(
+                      direction: Axis.horizontal,
+                      spacing: 20,
+                      children:
+                          lobby!.users.map((u) => Text(u.toString())).toList(),
+                    ),
+                    addLocalUserWidget(context)
+                  ]);
+                },
+              ),
       ),
     );
   }
@@ -75,7 +89,7 @@ class HostLobbyPageState extends State<HostLobbyPage> {
                   ? null
                   : () {
                       setState(() {
-                        users.add(User(localUserController.text));
+                        //users.add(User(localUserController.text));
                         localUserController.clear();
                       });
                     },

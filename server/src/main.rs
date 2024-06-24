@@ -11,6 +11,8 @@ use std::{
     time::Duration,
 };
 
+use rand::random;
+use serde_json::json;
 use uuid::Uuid;
 use websocket::{
     sync::{Client, Reader, Writer},
@@ -45,22 +47,58 @@ enum SocketMsg {
     Pingall(Vec<u8>),
     ConfirmPong(Vec<u8>),
     ClientPong(ClientID, Vec<u8>),
+    CreateLobby(ClientID),
 }
 
 static PING_SLEEP: AtomicBool = AtomicBool::new(false);
 
+struct Lobby {
+    devices: Vec<ClientID>,
+    users: Vec<String>,
+}
+
 fn main_loop(msg_rx: Receiver<SocketMsg>) {
-    let mut clients = HashMap::new();
+    let mut clients: HashMap<ClientID, Writer<TcpStream>> = HashMap::new();
 
     // PING/PONG
     let mut pong_clients: HashMap<ClientID, Vec<u8>> = HashMap::new();
     let mut allow_pongs = HashSet::new();
+
+    let mut lobbies = HashMap::<u16, Lobby>::new();
 
     loop {
         let msg = msg_rx.recv().unwrap();
 
         println!("Main recv: {msg:#?}");
         match msg {
+            SocketMsg::CreateLobby(client_id) => {
+                let lobby_id = loop {
+                    let lobby_id = random::<u16>();
+                    if !lobbies.contains_key(&lobby_id) {
+                        break lobby_id;
+                    }
+                };
+                lobbies.insert(
+                    lobby_id,
+                    Lobby {
+                        devices: vec![client_id],
+                        users: vec![],
+                    },
+                );
+
+                let Some(client) = clients.get_mut(&client_id) else {
+                    clients.remove(&client_id);
+                    lobbies.remove(&lobby_id);
+                    continue;
+                };
+
+                let response = json!({"req": "LobbyCreated", "data": lobby_id});
+
+                if let Err(_) = client.send_message(&OwnedMessage::Text(response.to_string())) {
+                    clients.remove(&client_id);
+                    lobbies.remove(&lobby_id);
+                }
+            }
             SocketMsg::ClientConnected(client_id, writer) => {
                 clients.insert(client_id, writer);
             }
@@ -126,15 +164,31 @@ fn inner_client_loop(
     msg_sx: &mut Sender<SocketMsg>,
     mut client: Reader<TcpStream>,
 ) -> anyhow::Result<Infallible> {
+    #[derive(Debug, serde::Deserialize)]
+    enum ClientMsg {
+        CreateLobby,
+    }
+
     loop {
         let msg = client.recv_message()?;
         match msg {
-            websocket::OwnedMessage::Text(_) => todo!(),
             websocket::OwnedMessage::Binary(_) => todo!(),
             websocket::OwnedMessage::Close(_) => todo!(),
             websocket::OwnedMessage::Ping(_) => todo!(),
             websocket::OwnedMessage::Pong(pongdata) => {
                 msg_sx.send(SocketMsg::ClientPong(client_id, pongdata))?
+            }
+            websocket::OwnedMessage::Text(jsonmsg) => {
+                println!("ClientMsg: {jsonmsg}");
+                let Ok(msg): Result<ClientMsg, _> = serde_json::from_str(&jsonmsg) else {
+                    eprintln!("Client sent invalid msg: {jsonmsg}");
+                    continue;
+                };
+                match msg {
+                    ClientMsg::CreateLobby => {
+                        msg_sx.send(SocketMsg::CreateLobby(client_id))?;
+                    }
+                }
             }
         }
     }
@@ -169,6 +223,7 @@ impl Debug for SocketMsg {
             SocketMsg::Pingall(_) => f.debug_tuple("PingAll").finish(),
             SocketMsg::ConfirmPong(_) => f.debug_tuple("ConfirmPong").finish(),
             SocketMsg::ClientPong(arg0, _) => f.debug_tuple("ClientPong").field(arg0).finish(),
+            SocketMsg::CreateLobby(arg0) => f.debug_tuple("CreateLobby").field(arg0).finish(),
         }
     }
 }

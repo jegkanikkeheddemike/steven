@@ -22,6 +22,7 @@ class Conn extends ChangeNotifier {
 
       socket.stream.listen((rawMsg) {
         var msg = jsonDecode(rawMsg);
+        print(msg);
         for (var key in handlers.keys) {
           switch (msg[key]) {
             case null:
@@ -49,7 +50,7 @@ class Conn extends ChangeNotifier {
       lobby = newLobby;
       handlers["UserAdd"] = (data) {
         if (data["lobby_id"] == newLobby.lobbyNr) {
-          newLobby._addUser(data["username"]);
+          newLobby._addUser(User(data["username"]));
           return true;
         }
         return false;
@@ -80,32 +81,21 @@ class Conn extends ChangeNotifier {
     await onUserAdded.future;
   }
 
-  Future<bool> joinLobby(int pin) async {
-    Completer<bool> onLobbyJoin = Completer();
-    handlers["lobbyJoin"] = (data) {
+  Future<Lobby?> joinLobby(int pin) async {
+    Completer<Lobby?> onLobbyJoin = Completer();
+    handlers["JoinLobby"] = (data) {
+      if (data["success"]) {
+        Lobby lobby = Lobby(pin);
+        for (var username in data["usernames"]) {
+          lobby.users.add(User(username));
+        }
+        onLobbyJoin.complete(lobby);
+      } else {
+        onLobbyJoin.complete(null);
+      }
       return false;
     };
-
-    throw UnimplementedError();
-  }
-
-  bool _userAdd(dynamic dynData) {
-    Map<String, dynamic> data = dynData as Map<String, dynamic>;
-
-    switch (lobby) {
-      case null:
-        print("Received UserAdd without lobby");
-      case var lobby:
-        if (lobby.lobbyNr != data["lobby"]) {
-          print("Reveived UserAdd of invalid lobby: ${data["lobby"]}");
-          return true;
-        }
-        var newuser =
-            User(data["name"], onlineData: OnlineData(data["device"]));
-        lobby._addUser(newuser);
-    }
-
-    return true;
+    return await onLobbyJoin.future;
   }
 }
 

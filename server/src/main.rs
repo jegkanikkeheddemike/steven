@@ -49,13 +49,21 @@ enum MainEvent {
     ClientDisconnected(ClientID),
     CreateLobby(ClientID),
     UserAdd(ClientID, LobbyID, String),
+    JoinLobby(ClientID, LobbyID),
 }
 
 #[derive(Debug, serde::Serialize)]
 enum Response {
     LobbyCreated(LobbyID),
-    UserAdd { lobby_id: LobbyID, username: String },
+    UserAdd {
+        lobby_id: LobbyID,
+        username: String,
+    },
     UserRemove(LobbyID, String),
+    LobbyJoin {
+        success: bool,
+        usernames: Vec<String>,
+    },
 }
 
 struct Lobby {
@@ -120,6 +128,27 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                         lobby.users.retain(|(_, c)| *c != client_id);
                     }
                 }
+            }
+            MainEvent::JoinLobby(client_id, lobby_id) => {
+                let Some(lobby) = lobbies.get_mut(&lobby_id) else {
+                    send(
+                        Response::LobbyJoin {
+                            success: false,
+                            usernames: vec![],
+                        },
+                        vec![client_id],
+                    );
+                    continue;
+                };
+                lobby.devices.push(client_id);
+                let usernames = lobby.users.iter().map(|(u, _)| u.to_owned()).collect();
+                send(
+                    Response::LobbyJoin {
+                        success: true,
+                        usernames,
+                    },
+                    vec![client_id],
+                );
             }
         }
     }

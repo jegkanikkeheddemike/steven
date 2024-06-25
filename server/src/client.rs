@@ -42,6 +42,7 @@ pub fn inner_client_loop(
     enum ClientMsg {
         CreateLobby,
         UserAdd(LobbyID, String),
+        JoinLobby(LobbyID),
     }
 
     loop {
@@ -65,6 +66,9 @@ pub fn inner_client_loop(
                     }
                     ClientMsg::UserAdd(lobby_id, username) => {
                         main_sx.send(MainEvent::UserAdd(client_id, lobby_id, username))?;
+                    }
+                    ClientMsg::JoinLobby(lobby_id) => {
+                        main_sx.send(MainEvent::JoinLobby(client_id, lobby_id))?;
                     }
                 }
             }

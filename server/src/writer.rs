@@ -31,7 +31,7 @@ pub fn writer_loop(response_rx: Receiver<WriterEvent>, main_sx: Sender<MainEvent
 
                 for client_id in resp_clients {
                     let Some(writer) = clients.get_mut(&client_id) else {
-                        eprintln!("Attempting to write to nonexistant client {client_id:?}");
+                        eprintln!("Attempting to write to deleted client {client_id:?}");
                         continue;
                     };
                     if let Err(_) = writer.send_message(&response_msg) {

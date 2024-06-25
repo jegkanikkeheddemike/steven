@@ -36,7 +36,6 @@ class Conn extends ChangeNotifier {
         }
 
         print("-- DROPPED RESPONSE --");
-        print(msg);
       });
     });
   }
@@ -48,7 +47,7 @@ class Conn extends ChangeNotifier {
     handlers["LobbyCreated"] = (data) {
       var newLobby = Lobby(data);
       lobby = newLobby;
-
+      _listenForUserChange(newLobby);
       onLobbyResponse.complete(lobby);
       return false;
     };
@@ -56,23 +55,6 @@ class Conn extends ChangeNotifier {
     socket.sink.add(jsonEncode("CreateLobby"));
 
     return await onLobbyResponse.future;
-  }
-
-  Future<void> addUser(String name, Lobby lobby) async {
-    Completer<void> onUserAdded = Completer();
-    handlers["UserAdded"] = (data) {
-      if (data == name) {
-        _listenForUserChange(lobby);
-        onUserAdded.complete();
-        return false;
-      }
-      return true;
-    };
-    socket.sink.add(jsonEncode({
-      "UserAdd": [lobby.lobbyNr, name]
-    }));
-
-    await onUserAdded.future;
   }
 
   Future<Lobby?> joinLobby(int pin) async {
@@ -98,6 +80,22 @@ class Conn extends ChangeNotifier {
     return await onLobbyJoin.future;
   }
 
+  Future<void> addUser(String name, Lobby lobby) async {
+    Completer<void> onUserAdded = Completer();
+    handlers["UserAdded"] = (data) {
+      if (data == name) {
+        onUserAdded.complete();
+        return false;
+      }
+      return true;
+    };
+    socket.sink.add(jsonEncode({
+      "UserAdd": [lobby.lobbyNr, name]
+    }));
+
+    await onUserAdded.future;
+  }
+
   void _listenForUserChange(Lobby lobby) {
     handlers["UserAdd"] = (data) {
       if (data["lobby_id"] == lobby.lobbyNr) {
@@ -108,7 +106,7 @@ class Conn extends ChangeNotifier {
     };
     handlers["UserRemove"] = (data) {
       if (data["lobby_id"] == lobby.lobbyNr) {
-        lobby._addUser(User(data["username"]));
+        lobby._removeUser(data["username"]);
         return true;
       }
       return false;
@@ -124,6 +122,11 @@ class Lobby extends ChangeNotifier {
 
   void _addUser(User user) {
     users.add(user);
+    notifyListeners();
+  }
+
+  void _removeUser(String username) {
+    users.retainWhere((user) => user.name != username);
     notifyListeners();
   }
 }

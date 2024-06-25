@@ -38,13 +38,15 @@ class LobbyPageState extends State<LobbyPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Hosting"),
         actions: [
           TextButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).clearSnackBars();
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(inviteSnackbar(context));
+            onPressed: switch (lobby) {
+              null => null,
+              var lobby => () {
+                  ScaffoldMessenger.of(context).clearSnackBars();
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(inviteSnackbar(context, lobby.lobbyNr));
+                }
             },
             child: const Text("Invite"),
           )
@@ -109,7 +111,7 @@ class LobbyPageState extends State<LobbyPage> {
     );
   }
 
-  SnackBar inviteSnackbar(BuildContext context) {
+  SnackBar inviteSnackbar(BuildContext context, int pin) {
     double width = MediaQuery.of(context).size.width / 2;
     return SnackBar(
       duration: const Duration(hours: 1),
@@ -121,7 +123,7 @@ class LobbyPageState extends State<LobbyPage> {
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             SizedBox(
               width: width,
-              child: QrImageView(data: "jensogkarsten.site"),
+              child: QrImageView(data: "$pin"),
             )
           ]),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [

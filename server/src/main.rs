@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     fmt::Debug,
     sync::mpsc::{channel, Receiver, Sender},
     thread,
@@ -70,7 +70,7 @@ enum Response {
 }
 
 struct Lobby {
-    devices: Vec<ClientID>,
+    devices: HashSet<ClientID>,
     users: Vec<(String, ClientID)>,
 }
 
@@ -98,7 +98,7 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                 lobbies.insert(
                     lobby_id,
                     Lobby {
-                        devices: vec![client_id],
+                        devices: HashSet::from([client_id]),
                         users: vec![],
                     },
                 );
@@ -106,8 +106,6 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                 send(Response::LobbyCreated(lobby_id), vec![client_id]);
             }
             MainEvent::UserAdd(client_id, lobby_id, username) => {
-                //ClientID is ignored for now, when device names are implemented it will be needed
-
                 let Some(lobby) = lobbies.get_mut(&lobby_id) else {
                     eprintln!("Tried to add user {username} to invalid lobby {lobby_id:?}");
                     continue;
@@ -115,20 +113,19 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                 lobby.users.push((username.clone(), client_id));
                 send(
                     Response::UserAdd { lobby_id, username },
-                    lobby.devices.clone(),
+                    lobby.devices.clone().into_iter().collect(),
                 );
             }
             MainEvent::ClientDisconnected(client_id) => {
                 for (lobby_id, lobby) in &mut lobbies {
-                    if let Some(position) = lobby.devices.iter().position(|c| *c == client_id) {
-                        lobby.devices.remove(position);
+                    if let Some(_) = lobby.devices.take(&client_id) {
                         for (username, _) in lobby.users.iter().filter(|(_, c)| *c == client_id) {
                             send(
                                 Response::UserRemove {
                                     lobby_id: *lobby_id,
                                     username: username.clone(),
                                 },
-                                lobby.devices.clone(),
+                                lobby.devices.clone().into_iter().collect(),
                             );
                         }
                         lobby.users.retain(|(_, c)| *c != client_id);
@@ -146,7 +143,7 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                     );
                     continue;
                 };
-                lobby.devices.push(client_id);
+                lobby.devices.insert(client_id);
                 let usernames = lobby.users.iter().map(|(u, _)| u.to_owned()).collect();
                 send(
                     Response::JoinLobby {

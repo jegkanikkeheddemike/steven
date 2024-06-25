@@ -48,13 +48,6 @@ class Conn extends ChangeNotifier {
     handlers["LobbyCreated"] = (data) {
       var newLobby = Lobby(data);
       lobby = newLobby;
-      handlers["UserAdd"] = (data) {
-        if (data["lobby_id"] == newLobby.lobbyNr) {
-          newLobby._addUser(User(data["username"]));
-          return true;
-        }
-        return false;
-      };
 
       onLobbyResponse.complete(lobby);
       return false;
@@ -69,6 +62,7 @@ class Conn extends ChangeNotifier {
     Completer<void> onUserAdded = Completer();
     handlers["UserAdded"] = (data) {
       if (data == name) {
+        _listenForUserChange(lobby);
         onUserAdded.complete();
         return false;
       }
@@ -89,6 +83,9 @@ class Conn extends ChangeNotifier {
         for (var username in data["usernames"]) {
           lobby.users.add(User(username));
         }
+
+        _listenForUserChange(lobby);
+
         onLobbyJoin.complete(lobby);
       } else {
         onLobbyJoin.complete(null);
@@ -99,6 +96,23 @@ class Conn extends ChangeNotifier {
     socket.sink.add(jsonEncode({"JoinLobby": pin}));
 
     return await onLobbyJoin.future;
+  }
+
+  void _listenForUserChange(Lobby lobby) {
+    handlers["UserAdd"] = (data) {
+      if (data["lobby_id"] == lobby.lobbyNr) {
+        lobby._addUser(User(data["username"]));
+        return true;
+      }
+      return false;
+    };
+    handlers["UserRemove"] = (data) {
+      if (data["lobby_id"] == lobby.lobbyNr) {
+        lobby._addUser(User(data["username"]));
+        return true;
+      }
+      return false;
+    };
   }
 }
 

@@ -59,7 +59,10 @@ enum Response {
         lobby_id: LobbyID,
         username: String,
     },
-    UserRemove(LobbyID, String),
+    UserRemove {
+        lobby_id: LobbyID,
+        username: String,
+    },
     JoinLobby {
         success: bool,
         usernames: Vec<String>,
@@ -121,7 +124,10 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                         lobby.devices.remove(position);
                         for (username, _) in lobby.users.iter().filter(|(_, c)| *c == client_id) {
                             send(
-                                Response::UserRemove(*lobby_id, username.clone()),
+                                Response::UserRemove {
+                                    lobby_id: *lobby_id,
+                                    username: username.clone(),
+                                },
                                 lobby.devices.clone(),
                             );
                         }

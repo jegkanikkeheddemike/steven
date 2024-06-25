@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:steven/host/lobby_page.dart';
+import 'package:steven/game/lobby_page.dart';
+import 'package:steven/join_page.dart';
 import 'package:steven/socket.dart';
 
 class MainMenuPage extends StatelessWidget {
@@ -27,9 +28,18 @@ class MainMenuPage extends StatelessWidget {
                     });
                   },
                   child: const Text("HOST"))),
-          const Padding(
-              padding: EdgeInsets.all(5),
-              child: ElevatedButton(onPressed: null, child: Text("JOIN"))),
+          Padding(
+              padding: const EdgeInsets.all(5),
+              child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => JoinPage(conn)),
+                    ).then((_) {
+                      ScaffoldMessenger.of(context).clearSnackBars();
+                    });
+                  },
+                  child: const Text("JOIN"))),
         ],
       ),
     );

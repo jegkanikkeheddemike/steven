@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:steven/device.dart';
-import 'package:steven/host/user.dart';
+import 'package:steven/game/user.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class Conn extends ChangeNotifier {
@@ -68,6 +68,19 @@ class Conn extends ChangeNotifier {
     }));
 
     await onUserAdded.future;
+  }
+
+  Future<bool> joinLobby(int pin) async {
+    Completer<bool> onLobbyJoin = Completer();
+    handlers["lobbyJoin"] = (data) {
+      
+
+
+      return false;
+    };
+
+
+    throw UnimplementedError();
   }
 
   bool _userAdd(dynamic dynData) {

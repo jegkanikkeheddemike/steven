@@ -54,7 +54,7 @@ enum MainEvent {
 #[derive(Debug, serde::Serialize)]
 enum Response {
     LobbyCreated(LobbyID),
-    UserAdd(LobbyID, String),
+    UserAdd { lobby_id: LobbyID, username: String },
     UserRemove(LobbyID, String),
 }
 
@@ -102,7 +102,10 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                     continue;
                 };
                 lobby.users.push((username.clone(), client_id));
-                send(Response::UserAdd(lobby_id, username), lobby.devices.clone());
+                send(
+                    Response::UserAdd { lobby_id, username },
+                    lobby.devices.clone(),
+                );
             }
             MainEvent::ClientDisconnected(client_id) => {
                 for (lobby_id, lobby) in &mut lobbies {

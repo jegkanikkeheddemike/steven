@@ -22,21 +22,21 @@ class Conn extends ChangeNotifier {
 
       socket.stream.listen((rawMsg) {
         var msg = jsonDecode(rawMsg);
-        var req = msg["req"];
-        var data = msg["data"];
-
-        var handler = handlers[req];
-        if (handler != null) {
-          if (!handler(data)) {
-            handlers.remove(req);
+        for (var key in handlers.keys) {
+          switch (msg[key]) {
+            case null:
+              continue;
+            case var data:
+              if (!handlers[key]!(data)) {
+                handlers.remove(key);
+              }
+              return;
           }
-        } else {
-          print("-- DROPPED RESPONSE --");
-          print(msg);
         }
-      });
 
-      handlers["UserAdd"] = _userAdd;
+        print("-- DROPPED RESPONSE --");
+        print(msg);
+      });
     });
   }
   // Map of handlers. Return true to retain
@@ -45,10 +45,20 @@ class Conn extends ChangeNotifier {
   Future<Lobby> createLobby() async {
     Completer<Lobby> onLobbyResponse = Completer<Lobby>();
     handlers["LobbyCreated"] = (data) {
-      lobby = Lobby(data);
+      var newLobby = Lobby(data);
+      lobby = newLobby;
+      handlers["UserAdd"] = (data) {
+        if (data["lobby_id"] == newLobby.lobbyNr) {
+          newLobby._addUser(data["username"]);
+          return true;
+        }
+        return false;
+      };
+
       onLobbyResponse.complete(lobby);
       return false;
     };
+
     socket.sink.add(jsonEncode("CreateLobby"));
 
     return await onLobbyResponse.future;
@@ -73,12 +83,8 @@ class Conn extends ChangeNotifier {
   Future<bool> joinLobby(int pin) async {
     Completer<bool> onLobbyJoin = Completer();
     handlers["lobbyJoin"] = (data) {
-      
-
-
       return false;
     };
-
 
     throw UnimplementedError();
   }

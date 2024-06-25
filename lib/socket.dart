@@ -95,6 +95,9 @@ class Conn extends ChangeNotifier {
       }
       return false;
     };
+
+    socket.sink.add(jsonEncode({"JoinLobby": pin}));
+
     return await onLobbyJoin.future;
   }
 }

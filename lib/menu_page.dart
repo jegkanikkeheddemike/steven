@@ -21,8 +21,7 @@ class MainMenuPage extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => HostLobbyPage(conn)),
+                      MaterialPageRoute(builder: (context) => LobbyPage(conn)),
                     ).then((_) {
                       ScaffoldMessenger.of(context).clearSnackBars();
                     });

@@ -2,28 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:steven/socket.dart';
 
-class HostLobbyPage extends StatefulWidget {
-  const HostLobbyPage(this.conn, {super.key});
+class LobbyPage extends StatefulWidget {
+  const LobbyPage(this.conn, {super.key, this.givenLobby});
   final Conn conn;
+  final Lobby? givenLobby;
 
   @override
   State<StatefulWidget> createState() {
-    return HostLobbyPageState();
+    return LobbyPageState();
   }
 }
 
-class HostLobbyPageState extends State<HostLobbyPage> {
+class LobbyPageState extends State<LobbyPage> {
   Lobby? lobby;
 
   @override
   void initState() {
     super.initState();
 
-    widget.conn.createLobby().then((newLobby) {
-      setState(() {
-        lobby = newLobby;
-      });
-    });
+    switch (widget.givenLobby) {
+      case null:
+        widget.conn.createLobby().then((newLobby) {
+          setState(() {
+            lobby = newLobby;
+          });
+        });
+      case var givenLobby:
+        setState(() {
+          lobby = givenLobby;
+        });
+    }
   }
 
   @override

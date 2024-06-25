@@ -60,7 +60,7 @@ enum Response {
         username: String,
     },
     UserRemove(LobbyID, String),
-    LobbyJoin {
+    JoinLobby {
         success: bool,
         usernames: Vec<String>,
     },
@@ -132,7 +132,7 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
             MainEvent::JoinLobby(client_id, lobby_id) => {
                 let Some(lobby) = lobbies.get_mut(&lobby_id) else {
                     send(
-                        Response::LobbyJoin {
+                        Response::JoinLobby {
                             success: false,
                             usernames: vec![],
                         },
@@ -143,7 +143,7 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                 lobby.devices.push(client_id);
                 let usernames = lobby.users.iter().map(|(u, _)| u.to_owned()).collect();
                 send(
-                    Response::LobbyJoin {
+                    Response::JoinLobby {
                         success: true,
                         usernames,
                     },

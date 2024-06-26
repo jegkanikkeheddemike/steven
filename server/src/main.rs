@@ -131,6 +131,8 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                         lobby.users.retain(|(_, c)| *c != client_id);
                     }
                 }
+                //Clean empty lobbies
+                lobbies.retain(|_, l| l.devices.len() > 0);
             }
             MainEvent::JoinLobby(client_id, lobby_id) => {
                 let Some(lobby) = lobbies.get_mut(&lobby_id) else {

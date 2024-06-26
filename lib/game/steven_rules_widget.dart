@@ -72,12 +72,12 @@ class GameCard {
       return "Queen of $colorName\n\n All ladies Cheers!!";
     } else if (i == 11) {
       return "Knight\n\n All gentlemen Cheers!!";
+    } else if (i == 0) {
+      return "Welcome to a game of Steven";
     } else if (i == 1) {
       return "ES of $colorName\n\n You got a Sniper\n\n With this cand you can snip another player";
     } else if (i == 3) {
       return "3 of $colorName\n\n Blind or mute\n\n You can decide to be blind or mute, until the next '3' is drawn\n Penalty for violating is 4 sips!";
-    } else if (i == 0) {
-      return "Welcome to a game of Steven";
     } else if (i == 2) {
       if (color == CardColor.clubs || color == CardColor.spades) {
         return "2 of $colorName\n\n You must drink 2 sips!";
@@ -92,6 +92,12 @@ class GameCard {
       return "6 of $colorName\n\n \"Wall\"\n\n At any time you may touch a wall and shout \"Wall\"\n The last person to also touch a wall must drink 4 sips";
     } else if (i == 7) {
       return "STEVEN\n\n You are Steven! \n Meaning you are paralyzed, you must appoint a 'helper' that will help you with EVERYTING! \n Feeling thirsty? The helper will help you drink \n Need to you the restroom? Your helper will carry you if that's what it takes \n Anything else in the game, No worries you've got a helper! \n\n You will remain Steven until another person is chosen to be Steven.";
+    } else if (i == 8) {
+      return "8 of $colorName\n\n \"Date\"\n\n Choose a person that you are on a date with, the two of you will have to take all your sips together!";
+    } else if (i == 9) {
+      return "9 of $colorName\n\n \"Min Pik er\" or \"My Dick is\"\n\n You have to start a sentace with \"Min Pik er\" followed by a word that describes you penis \n Every other player will have to find a new word with the same starting letter to describe their penis \n This continues until someone fail to find a word \n The penalty for loosing is 4 sips";
+    } else if (i == 10) {
+      return "10 of $colorName\n\n \"Category\"\n\n Pick a category and name a thing from the category, the next person has to find a new thing in the category and so on \n repetintiopn of a thing that has already been said \n or not being able to come up with anything \n will result in a penalty of 4 sips";
     }
     return i.toString();
   }

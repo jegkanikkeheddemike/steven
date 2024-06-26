@@ -6,6 +6,7 @@ import 'package:steven/socket.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDevice();
+  //Conn conn = Conn("82.211.199.161");
   Conn conn = Conn("jensogkarsten.site");
   runApp(MyApp(conn));
 }

@@ -11,34 +11,69 @@ class Conn extends ChangeNotifier {
   late WebSocketChannel socket;
 
   ConnState state = ConnState.connecting;
-
   Lobby? lobby;
-
+  Duration backoff = const Duration(milliseconds: 500);
+  bool hasTimer = false;
   Conn(this.addr) {
+    connect(false);
+  }
+
+  void connect(bool manual) {
     socket = WebSocketChannel.connect(Uri.parse("ws://$addr:6996"));
     socket.ready.then((_) {
+      log("Connected!");
       state = ConnState.connected;
       socket.sink.add(deviceID());
 
-      socket.stream.listen((rawMsg) {
-        var msg = jsonDecode(rawMsg);
-        print(msg);
-        for (var key in handlers.keys) {
-          switch (msg[key]) {
-            case null:
-              continue;
-            case var data:
-              if (!handlers[key]!(data)) {
-                handlers.remove(key);
-              }
-              return;
-          }
-        }
+      //Reset backoff on success
+      backoff = const Duration(milliseconds: 500);
+      notifyListeners();
+    });
 
-        print("-- DROPPED RESPONSE --");
-      });
+    socket.stream.listen((rawMsg) {
+      var msg = jsonDecode(rawMsg);
+      for (var key in handlers.keys) {
+        switch (msg[key]) {
+          case null:
+            continue;
+          case var data:
+            if (!handlers[key]!(data)) {
+              handlers.remove(key);
+            }
+            return;
+        }
+      }
+
+      log("DROPPED RESPONSE: $msg");
+    }, onError: (e) {
+      state = ConnState.failed;
+
+      if (manual) {
+        log("Connection failed");
+      } else {
+        backoff = backoff * 2;
+        log("Connection failed. Reattempting in  ${backoff.inSeconds} seconds");
+      }
+
+      notifyListeners();
+      if (!manual) {
+        Timer(backoff, () {
+          if (state != ConnState.connected) {
+            connect(false);
+          }
+        });
+      }
+    }, onDone: () {
+      notifyListeners();
+      if (state == ConnState.connected) {
+        //Server closed
+        connect(false);
+      }
     });
   }
+
+  Function(String) log = print;
+
   // Map of handlers. Return true to retain
   Map<String, bool Function(dynamic)> handlers = {};
 

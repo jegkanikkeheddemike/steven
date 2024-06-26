@@ -15,7 +15,7 @@ class _GamePageState extends State<GamePage> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Text("TODO!"),
+      body: Center(child: Text("TODO!")),
     );
   }
 }

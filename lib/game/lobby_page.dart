@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:steven/game/game_page.dart';
 import 'package:steven/socket.dart';
 
 class LobbyPage extends StatefulWidget {
@@ -32,6 +33,23 @@ class LobbyPageState extends State<LobbyPage> {
           lobby = givenLobby;
         });
     }
+
+    widget.conn.handlers["StartGame"] = (data) {
+      if (lobby != null && data["lobby_id"] == lobby!.pin) {
+        if (mounted) {
+          lobby!.started = true;
+          setState(() {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GamePage(widget.conn, lobby!),
+              ),
+            );
+          });
+        }
+      }
+      return false;
+    };
   }
 
   @override

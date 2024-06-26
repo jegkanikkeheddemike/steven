@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:steven/game/steven_rules_widget.dart';
 import 'package:steven/socket.dart';
 
 class GamePage extends StatefulWidget {
@@ -14,8 +15,6 @@ class GamePage extends StatefulWidget {
 class _GamePageState extends State<GamePage> {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text("TODO!")),
-    );
+    return const Scaffold(body: StevenRule());
   }
 }

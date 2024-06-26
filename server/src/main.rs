@@ -50,6 +50,7 @@ enum MainEvent {
     CreateLobby(ClientID),
     UserAdd(ClientID, LobbyID, String),
     JoinLobby(ClientID, LobbyID),
+    ExitLobby(ClientID, LobbyID),
 }
 
 #[derive(Debug, serde::Serialize)]
@@ -154,6 +155,22 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                     },
                     vec![client_id],
                 );
+            }
+            MainEvent::ExitLobby(client_id, lobby_id) => {
+                if let Some(lobby) = lobbies.get_mut(&lobby_id) {
+                    lobby.devices.remove(&client_id);
+
+                    for (username, _) in lobby.users.iter().filter(|(_, c)| *c == client_id) {
+                        send(
+                            Response::UserRemove {
+                                lobby_id,
+                                username: username.clone(),
+                            },
+                            lobby.devices.clone().into_iter().collect(),
+                        );
+                    }
+                    lobby.users.retain(|(_, c)| *c != client_id);
+                }
             }
         }
     }

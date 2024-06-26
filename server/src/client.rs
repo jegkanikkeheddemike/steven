@@ -43,6 +43,7 @@ pub fn inner_client_loop(
         CreateLobby,
         UserAdd(LobbyID, String),
         JoinLobby(LobbyID),
+        ExitLobby(LobbyID),
     }
 
     loop {
@@ -69,6 +70,9 @@ pub fn inner_client_loop(
                     }
                     ClientMsg::JoinLobby(lobby_id) => {
                         main_sx.send(MainEvent::JoinLobby(client_id, lobby_id))?;
+                    }
+                    ClientMsg::ExitLobby(lobby_id) => {
+                        main_sx.send(MainEvent::ExitLobby(client_id, lobby_id))?;
                     }
                 }
             }

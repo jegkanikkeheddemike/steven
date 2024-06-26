@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:steven/device.dart';
 import 'package:steven/game/user.dart';
@@ -11,7 +10,6 @@ class Conn extends ChangeNotifier {
   late WebSocketChannel socket;
 
   ConnState state = ConnState.connecting;
-  Lobby? lobby;
   Duration backoff = const Duration(milliseconds: 500);
   bool hasTimer = false;
   Conn(this.addr) {
@@ -80,9 +78,8 @@ class Conn extends ChangeNotifier {
   Future<Lobby> createLobby() async {
     Completer<Lobby> onLobbyResponse = Completer<Lobby>();
     handlers["LobbyCreated"] = (data) {
-      var newLobby = Lobby(data);
-      lobby = newLobby;
-      _listenForUserChange(newLobby);
+      var lobby = Lobby(data);
+      _listenForUserChange(lobby);
       onLobbyResponse.complete(lobby);
       return false;
     };
@@ -115,6 +112,12 @@ class Conn extends ChangeNotifier {
     return await onLobbyJoin.future;
   }
 
+  void exitLobbyIfNotStarted(Lobby lobby) {
+    if (!lobby.started) {
+      socket.sink.add(jsonEncode({"ExitLobby": lobby.pin}));
+    }
+  }
+
   Future<void> addUser(String name, Lobby lobby) async {
     Completer<void> onUserAdded = Completer();
     handlers["UserAdded"] = (data) {
@@ -125,22 +128,26 @@ class Conn extends ChangeNotifier {
       return true;
     };
     socket.sink.add(jsonEncode({
-      "UserAdd": [lobby.lobbyNr, name]
+      "UserAdd": [lobby.pin, name]
     }));
 
     await onUserAdded.future;
   }
 
+  void startGame(Lobby lobby) {
+    socket.sink.add(jsonEncode({"StartGame": lobby.pin}));
+  }
+
   void _listenForUserChange(Lobby lobby) {
     handlers["UserAdd"] = (data) {
-      if (data["lobby_id"] == lobby.lobbyNr) {
+      if (data["lobby_id"] == lobby.pin) {
         lobby._addUser(User(data["username"]));
         return true;
       }
       return false;
     };
     handlers["UserRemove"] = (data) {
-      if (data["lobby_id"] == lobby.lobbyNr) {
+      if (data["lobby_id"] == lobby.pin) {
         lobby._removeUser(data["username"]);
         return true;
       }
@@ -150,8 +157,9 @@ class Conn extends ChangeNotifier {
 }
 
 class Lobby extends ChangeNotifier {
-  Lobby(this.lobbyNr);
-  final int lobbyNr;
+  Lobby(this.pin);
+  final int pin;
+  bool started = false;
 
   List<User> users = [];
 

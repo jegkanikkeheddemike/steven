@@ -45,7 +45,7 @@ class LobbyPageState extends State<LobbyPage> {
               var lobby => () {
                   ScaffoldMessenger.of(context).clearSnackBars();
                   ScaffoldMessenger.of(context)
-                      .showSnackBar(inviteSnackbar(context, lobby.lobbyNr));
+                      .showSnackBar(inviteSnackbar(context, lobby.pin));
                 }
             },
             child: const Text("Invite"),
@@ -64,7 +64,7 @@ class LobbyPageState extends State<LobbyPage> {
             builder: (context, _) {
               return Column(children: [
                 Text(
-                  "Lobby ${lobby.lobbyNr}",
+                  "Lobby ${lobby.pin}",
                   style: const TextStyle(fontSize: 35),
                 ),
                 Wrap(
@@ -72,7 +72,13 @@ class LobbyPageState extends State<LobbyPage> {
                   spacing: 20,
                   children: lobby.users.map((u) => Text(u.toString())).toList(),
                 ),
-                addLocalUserWidget(context, lobby)
+                addLocalUserWidget(context, lobby),
+                ElevatedButton(
+                  onPressed: () {
+                    widget.conn.startGame(lobby);
+                  },
+                  child: const Text("START"),
+                ),
               ]);
             },
           ),
@@ -84,7 +90,7 @@ class LobbyPageState extends State<LobbyPage> {
 
   Widget addLocalUserWidget(BuildContext context, Lobby lobby) {
     return Padding(
-      padding: const EdgeInsets.all(5),
+      padding: const EdgeInsets.all(20),
       child: Row(
         children: [
           Expanded(
@@ -97,15 +103,16 @@ class LobbyPageState extends State<LobbyPage> {
             ),
           ),
           TextButton(
-              onPressed: localUserController.text.isEmpty
-                  ? null
-                  : () {
-                      setState(() {
-                        widget.conn.addUser(localUserController.text, lobby);
-                        localUserController.clear();
-                      });
-                    },
-              child: const Text("Add")),
+            onPressed: localUserController.text.isEmpty
+                ? null
+                : () {
+                    setState(() {
+                      widget.conn.addUser(localUserController.text, lobby);
+                      localUserController.clear();
+                    });
+                  },
+            child: const Text("Add"),
+          ),
         ],
       ),
     );
@@ -135,5 +142,14 @@ class LobbyPageState extends State<LobbyPage> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    if (lobby != null) {
+      widget.conn.exitLobbyIfNotStarted(lobby!);
+    }
   }
 }

@@ -27,6 +27,7 @@ pub fn writer_loop(response_rx: Receiver<WriterEvent>, main_sx: Sender<MainEvent
     loop {
         match response_rx.recv().unwrap() {
             WriterEvent::MsgSend(response, resp_clients) => {
+                println!("Writing: {response:#?} to {resp_clients:?}");
                 let response_msg = OwnedMessage::Text(serde_json::to_string(&response).unwrap());
 
                 for client_id in resp_clients {

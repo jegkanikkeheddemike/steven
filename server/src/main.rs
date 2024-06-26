@@ -51,6 +51,7 @@ enum MainEvent {
     UserAdd(ClientID, LobbyID, String),
     JoinLobby(ClientID, LobbyID),
     ExitLobby(ClientID, LobbyID),
+    StartGame(ClientID, LobbyID),
 }
 
 #[derive(Debug, serde::Serialize)]
@@ -67,6 +68,9 @@ enum Response {
     JoinLobby {
         success: bool,
         usernames: Vec<String>,
+    },
+    StartGame {
+        lobby_id: LobbyID,
     },
 }
 
@@ -117,24 +121,6 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                     lobby.devices.clone().into_iter().collect(),
                 );
             }
-            MainEvent::ClientDisconnected(client_id) => {
-                for (lobby_id, lobby) in &mut lobbies {
-                    if let Some(_) = lobby.devices.take(&client_id) {
-                        for (username, _) in lobby.users.iter().filter(|(_, c)| *c == client_id) {
-                            send(
-                                Response::UserRemove {
-                                    lobby_id: *lobby_id,
-                                    username: username.clone(),
-                                },
-                                lobby.devices.clone().into_iter().collect(),
-                            );
-                        }
-                        lobby.users.retain(|(_, c)| *c != client_id);
-                    }
-                }
-                //Clean empty lobbies
-                lobbies.retain(|_, l| l.devices.len() > 0);
-            }
             MainEvent::JoinLobby(client_id, lobby_id) => {
                 let Some(lobby) = lobbies.get_mut(&lobby_id) else {
                     send(
@@ -171,6 +157,40 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                     }
                     lobby.users.retain(|(_, c)| *c != client_id);
                 }
+            }
+            MainEvent::ClientDisconnected(client_id) => {
+                for (lobby_id, lobby) in &mut lobbies {
+                    if let Some(_) = lobby.devices.take(&client_id) {
+                        for (username, _) in lobby.users.iter().filter(|(_, c)| *c == client_id) {
+                            send(
+                                Response::UserRemove {
+                                    lobby_id: *lobby_id,
+                                    username: username.clone(),
+                                },
+                                lobby.devices.clone().into_iter().collect(),
+                            );
+                        }
+                        lobby.users.retain(|(_, c)| *c != client_id);
+                    }
+                }
+                //Clean empty lobbies
+                lobbies.retain(|_, l| l.devices.len() > 0);
+            }
+            MainEvent::StartGame(client_id, lobby_id) => {
+                let Some(lobby) = lobbies.get_mut(&lobby_id) else {
+                    eprintln!("Attempted stargin invalid lobby {lobby_id:?}");
+                    continue;
+                };
+
+                if !lobby.devices.contains(&client_id) {
+                    eprintln!("{client_id:?} attempted to start nonjoined lobby");
+                    continue;
+                }
+
+                send(
+                    Response::StartGame { lobby_id },
+                    lobby.devices.clone().into_iter().collect(),
+                );
             }
         }
     }

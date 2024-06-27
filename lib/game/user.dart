@@ -1,18 +1,15 @@
+import 'package:steven/device.dart';
+
 class User {
-  const User(this.name, {this.onlineData});
+  const User(this.name, this.device);
   final String name;
-  final OnlineData? onlineData;
+  final String device;
 
   @override
   String toString() {
-    if (onlineData != null) {
+    if (device != deviceID()) {
       return "$name*";
     }
     return name;
   }
-}
-
-class OnlineData {
-  const OnlineData(this.deviceName);
-  final String deviceName;
 }

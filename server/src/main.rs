@@ -53,6 +53,7 @@ enum MainEvent {
     JoinLobby(ClientID, LobbyID),
     ExitLobby(ClientID, LobbyID),
     StartGame(ClientID, LobbyID),
+    PassTurn(ClientID, LobbyID),
 }
 
 #[derive(Debug, serde::Serialize)]
@@ -74,11 +75,18 @@ enum Response {
     StartGame {
         lobby_id: LobbyID,
     },
+    SetTurn((String, ClientID)),
+    Error(String),
 }
 
 struct Lobby {
     devices: HashSet<ClientID>,
     users: Vec<(String, ClientID)>,
+    game: Option<Game>,
+}
+
+struct Game {
+    current_turn: (String, ClientID),
 }
 
 fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
@@ -107,6 +115,7 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                     Lobby {
                         devices: HashSet::from([client_id]),
                         users: vec![],
+                        game: None,
                     },
                 );
 
@@ -189,11 +198,47 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
 
                 if !lobby.devices.contains(&client_id) {
                     eprintln!("{client_id:?} attempted to start nonjoined lobby");
+                    send(
+                        Response::Error("Not a part of lobby".into()),
+                        vec![client_id],
+                    );
                     continue;
                 }
+                let Some(first_user) = lobby.users.first() else {
+                    send(Response::Error("Lobby is empty".into()), vec![client_id]);
+                    continue;
+                };
+                lobby.game = Some(Game {
+                    current_turn: first_user.to_owned(),
+                });
 
                 send(
                     Response::StartGame { lobby_id },
+                    lobby.devices.clone().into_iter().collect(),
+                );
+            }
+            MainEvent::PassTurn(client_id, lobby_id) => {
+                let Some(lobby) = lobbies.get_mut(&lobby_id) else {
+                    send(Response::Error("Invalid lobbyID".into()), vec![client_id]);
+                    continue;
+                };
+
+                let Some(game) = &mut lobby.game else {
+                    send(Response::Error("Game not started".into()), vec![client_id]);
+                    continue;
+                };
+                let Some(position) = lobby.users.iter().position(|u| *u == game.current_turn)
+                else {
+                    send(
+                        Response::Error("Server cannot calculate next user. Resetting".into()),
+                        lobby.devices.clone().into_iter().collect(),
+                    );
+                    continue;
+                };
+                let new_position = (position + 1) % lobby.users.len();
+                game.current_turn = lobby.users[new_position].clone();
+                send(
+                    Response::SetTurn(game.current_turn.clone()),
                     lobby.devices.clone().into_iter().collect(),
                 );
             }

@@ -94,12 +94,8 @@ class Conn extends ChangeNotifier {
     handlers["JoinLobby"] = (data) {
       if (data["success"]) {
         Lobby lobby = Lobby(pin);
-        for (var (username, clientID) in data["usernames"]) {
-          if (clientID == deviceID()) {
-            lobby.users.add(User(username));
-          } else {
-            lobby.users.add(User(username, onlineData: OnlineData(clientID)));
-          }
+        for (var [username, clientID] in data["users"]) {
+          lobby.users.add(User(username, clientID));
         }
 
         _listenForUserChange(lobby);
@@ -138,11 +134,7 @@ class Conn extends ChangeNotifier {
       var username = data["username"];
       var clientID = data["client_id"];
       if (lobbyID == lobby.pin) {
-        if (clientID != deviceID()) {
-          lobby._addUser(User(username, onlineData: OnlineData(clientID)));
-        } else {
-          lobby._addUser(User(username));
-        }
+        lobby._addUser(User(username, clientID));
 
         return true;
       }
@@ -162,7 +154,6 @@ class Lobby extends ChangeNotifier {
   Lobby(this.pin);
   final int pin;
   bool started = false;
-
   List<User> users = [];
 
   void _addUser(User user) {
@@ -181,3 +172,4 @@ enum ConnState {
   connecting,
   failed,
 }
+

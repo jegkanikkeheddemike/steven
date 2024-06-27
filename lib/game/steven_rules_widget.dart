@@ -16,27 +16,24 @@ class _StevenRuleState extends State<StevenRule> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(children: [
-        SizedBox(
-            height: 300,
-            child:
-                Center(child: Text(deck.cardAtIndex(currentCard).toString()))),
-        TextButton(
-            onPressed: () => {
-                  setState(() {
-                    if (deck.length() == 1) {
-                      deck = CardDeck();
-                    }
-                    prevCard = currentCard;
-                    currentCard = Random().nextInt(deck.length() - 1);
-                    deck.removeCard(deck.cardAtIndex(prevCard));
-                  })
-                },
-            child: const Text("Draw")),
-        //Text(deck.toString())
-      ]),
-    );
+    return Column(children: [
+      SizedBox(
+          height: 300,
+          child: Center(child: Text(deck.cardAtIndex(currentCard).toString()))),
+      TextButton(
+          onPressed: () => {
+                setState(() {
+                  if (deck.length() == 1) {
+                    deck = CardDeck();
+                  }
+                  prevCard = currentCard;
+                  currentCard = Random().nextInt(deck.length() - 1);
+                  deck.removeCard(deck.cardAtIndex(prevCard));
+                })
+              },
+          child: const Text("Draw")),
+      //Text(deck.toString())
+    ]);
   }
 }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:steven/game/game.dart';
 import 'package:steven/game/game_page.dart';
 import 'package:steven/socket.dart';
 
@@ -37,12 +38,12 @@ class LobbyPageState extends State<LobbyPage> {
     widget.conn.handlers["StartGame"] = (data) {
       if (lobby != null && data["lobby_id"] == lobby!.pin) {
         if (mounted) {
-          lobby!.started = true;
+          Game game = Game(widget.conn, lobby!);
           setState(() {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => GamePage(widget.conn, lobby!),
+                builder: (context) => GamePage(widget.conn, game),
               ),
             );
           });

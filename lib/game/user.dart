@@ -6,7 +6,7 @@ class User {
   @override
   String toString() {
     if (onlineData != null) {
-      return "$name@${onlineData!.deviceName}";
+      return "$name*";
     }
     return name;
   }

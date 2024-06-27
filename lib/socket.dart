@@ -94,8 +94,12 @@ class Conn extends ChangeNotifier {
     handlers["JoinLobby"] = (data) {
       if (data["success"]) {
         Lobby lobby = Lobby(pin);
-        for (var username in data["usernames"]) {
-          lobby.users.add(User(username));
+        for (var (username, clientID) in data["usernames"]) {
+          if (clientID == deviceID()) {
+            lobby.users.add(User(username));
+          } else {
+            lobby.users.add(User(username, onlineData: OnlineData(clientID)));
+          }
         }
 
         _listenForUserChange(lobby);
@@ -134,7 +138,7 @@ class Conn extends ChangeNotifier {
       var username = data["username"];
       var clientID = data["client_id"];
       if (lobbyID == lobby.pin) {
-        if (clientID == deviceID()) {
+        if (clientID != deviceID()) {
           lobby._addUser(User(username, onlineData: OnlineData(clientID)));
         } else {
           lobby._addUser(User(username));

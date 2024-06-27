@@ -69,7 +69,7 @@ enum Response {
     },
     JoinLobby {
         success: bool,
-        usernames: Vec<String>,
+        users: Vec<(String, ClientID)>,
     },
     StartGame {
         lobby_id: LobbyID,
@@ -132,18 +132,17 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                     send(
                         Response::JoinLobby {
                             success: false,
-                            usernames: vec![],
+                            users: vec![],
                         },
                         vec![client_id],
                     );
                     continue;
                 };
                 lobby.devices.insert(client_id);
-                let usernames = lobby.users.iter().map(|(u, _)| u.to_owned()).collect();
                 send(
                     Response::JoinLobby {
                         success: true,
-                        usernames,
+                        users: lobby.users.clone(),
                     },
                     vec![client_id],
                 );

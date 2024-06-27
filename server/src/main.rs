@@ -75,7 +75,10 @@ enum Response {
     StartGame {
         lobby_id: LobbyID,
     },
-    SetTurn((String, ClientID)),
+    SetTurn {
+        lobby_id: LobbyID,
+        user: (String, ClientID),
+    },
     Error(String),
 }
 
@@ -238,7 +241,10 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                 let new_position = (position + 1) % lobby.users.len();
                 game.current_turn = lobby.users[new_position].clone();
                 send(
-                    Response::SetTurn(game.current_turn.clone()),
+                    Response::SetTurn {
+                        lobby_id: lobby_id,
+                        user: game.current_turn.clone(),
+                    },
                     lobby.devices.clone().into_iter().collect(),
                 );
             }

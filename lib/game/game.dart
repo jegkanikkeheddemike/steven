@@ -19,7 +19,8 @@ class Game extends ChangeNotifier {
     currentTurn = lobby.users.first;
 
     conn.handlers["SetTurn"] = (data) {
-      var lobbyID = data["lobbyID"];
+      print(data);
+      var lobbyID = data["lobby_id"];
       if (lobbyID != lobby.pin) {
         return false;
       }

@@ -46,6 +46,7 @@ pub fn inner_client_loop(
         ExitLobby(LobbyID),
         StartGame(LobbyID),
         PassTurn(LobbyID),
+        DrawCard(LobbyID),
     }
 
     loop {
@@ -82,6 +83,10 @@ pub fn inner_client_loop(
                     ClientMsg::PassTurn(lobby_id) => {
                         main_sx.send(MainEvent::PassTurn(client_id, lobby_id))?;
                     }
+                    ClientMsg::DrawCard(lobby_id) => {
+                        main_sx.send(MainEvent::DrawCard(client_id, lobby_id))?;
+                    },
+                    
                 }
             }
         }

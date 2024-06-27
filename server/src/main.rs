@@ -54,6 +54,7 @@ enum MainEvent {
     ExitLobby(ClientID, LobbyID),
     StartGame(ClientID, LobbyID),
     PassTurn(ClientID, LobbyID),
+    DrawCard(ClientID, LobbyID),
 }
 
 #[derive(Debug, serde::Serialize)]
@@ -79,6 +80,10 @@ enum Response {
         lobby_id: LobbyID,
         user: (String, ClientID),
     },
+    DrawCard {
+        lobby_id: LobbyID,
+        card: u8
+    },
     Error(String),
 }
 
@@ -90,6 +95,7 @@ struct Lobby {
 
 struct Game {
     current_turn: (String, ClientID),
+    deck: Vec<u8>
 }
 
 fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
@@ -215,6 +221,7 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                 };
                 lobby.game = Some(Game {
                     current_turn: first_user.to_owned(),
+                    deck: (0..52).collect(),
                 });
 
                 send(
@@ -250,6 +257,30 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                     lobby.devices.clone().into_iter().collect(),
                 );
             }
+            MainEvent::DrawCard(client_id, lobby_id) => {
+                let Some(lobby) = lobbies.get_mut(&lobby_id) else {
+                    send(Response::Error("Invalid lobbyID".into()), vec![client_id]);
+                    continue;
+                };
+
+                let Some(game) = &mut lobby.game else {
+                    send(Response::Error("Game not started".into()), vec![client_id]);
+                    continue;
+                };
+
+                let random_index = random::<usize>() % game.deck.len();
+                
+                let card = game.deck.remove(random_index);
+
+                send(
+                    Response::DrawCard {
+                        lobby_id,
+                        card,
+                    },
+                    lobby.devices.clone().into_iter().collect(),
+                );
+
+            }, 
         }
     }
 }

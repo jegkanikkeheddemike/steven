@@ -7,7 +7,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDevice();
   //Conn conn = Conn("82.211.199.161:6996");
-  Conn conn = Conn("steven.f-skipper.com");
+  Conn conn = Conn("jensogkarsten.site:6996");
   runApp(MyApp(conn));
 }
 

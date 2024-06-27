@@ -25,11 +25,11 @@ class Game extends ChangeNotifier {
         return false;
       }
 
-      var username = data["username"];
-      var clientID = data["client_id"];
+      var [username, clientID] = data["user"];
       currentTurn = lobby.users.firstWhere(
           (user) => user.name == username && user.device == clientID);
 
+      notifyListeners();
       return true;
     };
   }

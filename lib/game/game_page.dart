@@ -24,19 +24,22 @@ class _GamePageState extends State<GamePage> {
             child: SizedBox(
               height: 100,
               child: Center(
-                child: Wrap(
-                  spacing: 10,
-                  direction: Axis.horizontal,
-                  children: widget.game.lobby.users
-                      .map((user) => Text(
-                            user.toString(),
-                            style: TextStyle(
-                              fontWeight: user == widget.game.currentTurn
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
-                          ))
-                      .toList(),
+                child: ListenableBuilder(
+                  listenable: widget.game,
+                  builder: (context, _) => Wrap(
+                    spacing: 10,
+                    direction: Axis.horizontal,
+                    children: widget.game.lobby.users
+                        .map((user) => Text(
+                              user.toString(),
+                              style: TextStyle(
+                                fontWeight: user == widget.game.currentTurn
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ))
+                        .toList(),
+                  ),
                 ),
               ),
             ),

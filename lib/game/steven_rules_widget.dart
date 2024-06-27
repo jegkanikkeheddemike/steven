@@ -1,39 +1,38 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:steven/game/game.dart';
 
 class StevenRule extends StatefulWidget {
-  const StevenRule({super.key});
+  final Game game;
+  const StevenRule(this.game, {super.key});
 
   @override
   State<StevenRule> createState() => _StevenRuleState();
 }
 
 class _StevenRuleState extends State<StevenRule> {
-  CardDeck deck = CardDeck();
-  int currentCard = 0;
-  int prevCard = 0;
-
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      SizedBox(
-          height: 300,
-          child: Center(child: Text(deck.cardAtIndex(currentCard).toString()))),
-      TextButton(
-          onPressed: () => {
-                setState(() {
-                  if (deck.length() == 1) {
-                    deck = CardDeck();
-                  }
-                  prevCard = currentCard;
-                  currentCard = Random().nextInt(deck.length() - 1);
-                  deck.removeCard(deck.cardAtIndex(prevCard));
-                })
-              },
-          child: const Text("Draw")),
-      //Text(deck.toString())
-    ]);
+    return ListenableBuilder(
+        listenable: widget.game,
+        builder: (context, _) {
+          return Column(children: [
+            SizedBox(
+                height: 300,
+                child: Center(
+                    child: widget.game.currentCard == null
+                        ? const Text("Draw your card")
+                        : Text(widget.game.currentCard.toString()))),
+            TextButton(
+                onPressed: () {
+                  widget.game.conn.socket.sink
+                      .add(jsonEncode({"DrawCard": widget.game.lobby.pin}));
+                },
+                child: const Text("Draw")),
+          ]);
+        });
   }
 }
 

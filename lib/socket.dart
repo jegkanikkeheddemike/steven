@@ -172,4 +172,3 @@ enum ConnState {
   connecting,
   failed,
 }
-

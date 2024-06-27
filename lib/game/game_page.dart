@@ -44,7 +44,7 @@ class _GamePageState extends State<GamePage> {
               ),
             ),
           ),
-          const StevenRule(),
+          StevenRule(widget.game),
           ListenableBuilder(
             listenable: widget.game,
             builder: (context, _) => ElevatedButton(

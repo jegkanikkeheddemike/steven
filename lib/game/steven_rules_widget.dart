@@ -148,7 +148,6 @@ class CardDeck {
 
   CardDeck() {
     cards = List.empty(growable: true);
-    cards.add(const GameCard(0, CardColor.hearts));
     for (CardColor color in CardColor.values) {
       for (int i = 1; i <= 13; i++) {
         cards.add(GameCard(i, color));

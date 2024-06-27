@@ -174,6 +174,8 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                     }
                     lobby.users.retain(|(_, c)| *c != client_id);
                 }
+                //Clean empty lobbies
+                lobbies.retain(|_, l| l.devices.len() > 0);
             }
             MainEvent::ClientDisconnected(client_id) => {
                 for (lobby_id, lobby) in &mut lobbies {

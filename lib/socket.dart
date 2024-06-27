@@ -17,7 +17,7 @@ class Conn extends ChangeNotifier {
   }
 
   void connect(bool manual) {
-    socket = WebSocketChannel.connect(Uri.parse("ws://$addr:6996"));
+    socket = WebSocketChannel.connect(Uri.parse("ws://$addr"));
     socket.ready.then((_) {
       log("Connected!");
       state = ConnState.connected;

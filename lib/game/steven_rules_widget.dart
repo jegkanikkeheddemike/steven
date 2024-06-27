@@ -66,7 +66,7 @@ class GameCard {
     } else if (i == 12) {
       return "Queen of $colorName\n\n All ladies Cheers!!";
     } else if (i == 11) {
-      return "Knight\n\n All gentlemen Cheers!!";
+      return "Jack\n\n All gentlemen Cheers!!";
     } else if (i == 0) {
       return "Welcome to a game of Steven";
     } else if (i == 1) {

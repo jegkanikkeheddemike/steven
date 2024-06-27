@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:steven/socket.dart';
 
 class StevenRule extends StatefulWidget {
   const StevenRule({super.key});

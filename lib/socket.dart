@@ -118,20 +118,10 @@ class Conn extends ChangeNotifier {
     }
   }
 
-  Future<void> addUser(String name, Lobby lobby) async {
-    Completer<void> onUserAdded = Completer();
-    handlers["UserAdded"] = (data) {
-      if (data == name) {
-        onUserAdded.complete();
-        return false;
-      }
-      return true;
-    };
+  void addUser(String name, Lobby lobby) async {
     socket.sink.add(jsonEncode({
       "UserAdd": [lobby.pin, name]
     }));
-
-    await onUserAdded.future;
   }
 
   void startGame(Lobby lobby) {
@@ -140,8 +130,16 @@ class Conn extends ChangeNotifier {
 
   void _listenForUserChange(Lobby lobby) {
     handlers["UserAdd"] = (data) {
-      if (data["lobby_id"] == lobby.pin) {
-        lobby._addUser(User(data["username"]));
+      var lobbyID = data["lobby_id"];
+      var username = data["username"];
+      var clientID = data["client_id"];
+      if (lobbyID == lobby.pin) {
+        if (clientID == deviceID()) {
+          lobby._addUser(User(username, onlineData: OnlineData(clientID)));
+        } else {
+          lobby._addUser(User(username));
+        }
+
         return true;
       }
       return false;

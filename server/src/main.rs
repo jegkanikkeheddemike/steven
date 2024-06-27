@@ -8,6 +8,7 @@ use std::{
 use client::client_loop;
 use pinger::ping_loop;
 use rand::random;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use writer::{writer_loop, WriterEvent};
 
@@ -38,7 +39,7 @@ fn main() {
         thread::spawn(move || client_loop(msg_sx, client, writer_sx));
     }
 }
-#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Hash)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Hash, Serialize, Deserialize)]
 struct ClientID(Uuid);
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, serde::Serialize, serde::Deserialize)]
@@ -60,6 +61,7 @@ enum Response {
     UserAdd {
         lobby_id: LobbyID,
         username: String,
+        client_id: ClientID,
     },
     UserRemove {
         lobby_id: LobbyID,
@@ -117,7 +119,11 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                 };
                 lobby.users.push((username.clone(), client_id));
                 send(
-                    Response::UserAdd { lobby_id, username },
+                    Response::UserAdd {
+                        lobby_id,
+                        username,
+                        client_id,
+                    },
                     lobby.devices.clone().into_iter().collect(),
                 );
             }

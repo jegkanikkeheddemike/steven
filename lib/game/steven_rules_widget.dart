@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:steven/game/game.dart';
@@ -16,27 +15,37 @@ class _StevenRuleState extends State<StevenRule> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-        listenable: widget.game,
-        builder: (context, _) {
-          return Column(children: [
+      listenable: widget.game,
+      builder: (context, _) {
+        return Column(
+          children: [
             InkWell(
-                onTap: () {
-                  widget.game.isCurrentTurn() && widget.game.currentCard == null
-                      ? widget.game.conn.socket.sink
-                          .add(jsonEncode({"DrawCard": widget.game.lobby.pin}))
-                      : widget.game.currentCard != null
-                          ? widget.game.conn.socket.sink.add(
-                              jsonEncode({"PassTurn": widget.game.lobby.pin}))
-                          : null;
-                },
-                child: SizedBox(
-                    height: 400,
-                    width: 280,
-                    child: widget.game.isCurrentTurn()
-                        ? GameCard.build(widget.game.currentCard)
-                        : const Text("Not you turn"))),
-          ]);
-        });
+              onTap: switch ((
+                widget.game.isCurrentTurn(),
+                widget.game.currentCard
+              )) {
+                (false, var _) => null,
+                (true, null) => () {
+                    widget.game.conn.socket.sink
+                        .add(jsonEncode({"DrawCard": widget.game.lobby.pin}));
+                  },
+                (true, var _) => () {
+                    widget.game.conn.socket.sink
+                        .add(jsonEncode({"PassTurn": widget.game.lobby.pin}));
+                  }
+              },
+              child: SizedBox(
+                height: 400,
+                width: 280,
+                child: widget.game.isCurrentTurn()
+                    ? GameCard.build(widget.game.currentCard)
+                    : const Center(child: Text("Not your turn")),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 
@@ -64,7 +73,7 @@ class GameCard {
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment(0.8, 1),
-                  colors: <Color>[
+                  colors: [
                     Color(0xff1f005c),
                     Color(0xff5b0060),
                     Color(0xff870160),
@@ -78,8 +87,8 @@ class GameCard {
                 ))
             : BoxDecoration(
                 border: Border.all(
-                    color: Color.fromARGB(255, 78, 79, 97), width: 5),
-                color: Color.fromARGB(255, 40, 37, 51),
+                    color: const Color.fromARGB(255, 78, 79, 97), width: 5),
+                color: const Color.fromARGB(255, 40, 37, 51),
                 borderRadius: const BorderRadius.all(Radius.circular(15))),
         child: currentCard == null
             ? const Center(child: Text("Draw your card"))

@@ -45,17 +45,6 @@ class _GamePageState extends State<GamePage> {
             ),
           ),
           StevenRule(widget.game),
-          ListenableBuilder(
-            listenable: widget.game,
-            builder: (context, _) => ElevatedButton(
-              onPressed: widget.game.isCurrentTurn()
-                  ? () {
-                      widget.game.passTurn();
-                    }
-                  : null,
-              child: const Text("Pass"),
-            ),
-          )
         ],
       ),
     );

@@ -82,7 +82,10 @@ enum Response {
     },
     DrawCard {
         lobby_id: LobbyID,
-        card: u8
+        card: u8,
+    },
+    GameFinished {
+        lobby_id: LobbyID,
     },
     Error(String),
 }
@@ -95,7 +98,7 @@ struct Lobby {
 
 struct Game {
     current_turn: (String, ClientID),
-    deck: Vec<u8>
+    deck: Vec<u8>,
 }
 
 fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
@@ -268,19 +271,23 @@ fn main_loop(msg_rx: Receiver<MainEvent>, response_sx: Sender<WriterEvent>) {
                     continue;
                 };
 
+                if game.deck.len() == 0 {
+                    send(
+                        Response::GameFinished { lobby_id },
+                        lobby.devices.clone().into_iter().collect(),
+                    );
+                    continue;
+                }
+
                 let random_index = random::<usize>() % game.deck.len();
-                
+
                 let card = game.deck.remove(random_index);
 
                 send(
-                    Response::DrawCard {
-                        lobby_id,
-                        card,
-                    },
+                    Response::DrawCard { lobby_id, card },
                     lobby.devices.clone().into_iter().collect(),
                 );
-
-            }, 
+            }
         }
     }
 }

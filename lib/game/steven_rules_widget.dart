@@ -19,18 +19,22 @@ class _StevenRuleState extends State<StevenRule> {
         listenable: widget.game,
         builder: (context, _) {
           return Column(children: [
-            SizedBox(
-                height: 300,
-                child: Center(
-                    child: widget.game.currentCard == null
-                        ? const Text("Draw your card")
-                        : Text(widget.game.currentCard.toString()))),
-            TextButton(
-                onPressed: () {
-                  widget.game.conn.socket.sink
-                      .add(jsonEncode({"DrawCard": widget.game.lobby.pin}));
+            InkWell(
+                onTap: () {
+                  widget.game.isCurrentTurn() && widget.game.currentCard == null
+                      ? widget.game.conn.socket.sink
+                          .add(jsonEncode({"DrawCard": widget.game.lobby.pin}))
+                      : widget.game.currentCard != null
+                          ? widget.game.conn.socket.sink.add(
+                              jsonEncode({"PassTurn": widget.game.lobby.pin}))
+                          : null;
                 },
-                child: const Text("Draw")),
+                child: SizedBox(
+                    height: 400,
+                    width: 280,
+                    child: widget.game.isCurrentTurn()
+                        ? GameCard.build(widget.game.currentCard)
+                        : const Text("Not you turn"))),
           ]);
         });
   }
@@ -48,6 +52,74 @@ class GameCard {
   final CardColor color;
 
   const GameCard(this.i, this.color);
+
+  static Widget build(GameCard? currentCard) {
+    return Container(
+        height: 400,
+        decoration: currentCard == null
+            ? BoxDecoration(
+                border: Border.all(
+                    color: const Color.fromARGB(255, 78, 79, 97), width: 5),
+                borderRadius: const BorderRadius.all(Radius.circular(15)),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment(0.8, 1),
+                  colors: <Color>[
+                    Color(0xff1f005c),
+                    Color(0xff5b0060),
+                    Color(0xff870160),
+                    Color(0xffac255e),
+                    Color(0xffca485c),
+                    Color(0xffe16b5c),
+                    Color(0xfff39060),
+                    Color(0xffffb56b),
+                  ], // Gradient from https://learnui.design/tools/gradient-generator.html
+                  tileMode: TileMode.mirror,
+                ))
+            : BoxDecoration(
+                border: Border.all(
+                    color: Color.fromARGB(255, 78, 79, 97), width: 5),
+                color: Color.fromARGB(255, 40, 37, 51),
+                borderRadius: const BorderRadius.all(Radius.circular(15))),
+        child: currentCard == null
+            ? const Center(child: Text("Draw your card"))
+            : Center(
+                child: Stack(children: [
+                Align(
+                    alignment: Alignment.topLeft, child: currentCard.getIcon()),
+                Align(
+                    alignment: Alignment.center,
+                    child: SizedBox(
+                        width: 260, child: Text(currentCard.toString())))
+              ])));
+  }
+
+  Widget getIcon() {
+    var icon = color == CardColor.hearts
+        ? const Icon(
+            Icons.favorite,
+            color: Colors.pink,
+            size: 50,
+          )
+        : color == CardColor.spades
+            ? const Icon(
+                Icons.construction,
+                color: Color.fromARGB(255, 24, 124, 173),
+                size: 50,
+              )
+            : color == CardColor.diamonds
+                ? const Icon(
+                    Icons.bakery_dining_rounded,
+                    color: Colors.pink,
+                    size: 50,
+                  )
+                : const Icon(
+                    Icons.spa,
+                    color: Color.fromARGB(255, 24, 124, 173),
+                    size: 50,
+                  );
+    return icon;
+  }
 
   @override
   String toString() {

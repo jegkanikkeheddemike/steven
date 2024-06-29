@@ -28,7 +28,8 @@ fn main() {
     let ping_writer_sx = writer_sx.clone();
     thread::spawn(move || ping_loop(ping_writer_sx));
 
-    while let Ok(conn) = server.accept() {
+    loop {
+        let conn = server.accept().unwrap();
         let addr = conn.origin().map(str::to_string);
         let Ok(client) = conn.accept() else {
             eprintln!("Failed to accept client from conn: {:?}", addr);

@@ -17,7 +17,6 @@ mod pinger;
 mod writer;
 
 fn main() {
-    let mut server = websocket::sync::Server::bind("0.0.0.0:6996").unwrap();
     let (main_sx, main_rx) = channel();
     let (writer_sx, response_rx) = channel();
     let main_writer_sx = writer_sx.clone();
@@ -29,15 +28,19 @@ fn main() {
     thread::spawn(move || ping_loop(ping_writer_sx));
 
     loop {
-        let conn = server.accept().unwrap();
-        let addr = conn.origin().map(str::to_string);
-        let Ok(client) = conn.accept() else {
-            eprintln!("Failed to accept client from conn: {:?}", addr);
-            continue;
-        };
-        let msg_sx = main_sx.clone();
-        let writer_sx = writer_sx.clone();
-        thread::spawn(move || client_loop(msg_sx, client, writer_sx));
+        //Wtf?? server.accept fejler nogengange, aner ikke hvorfor.
+        // Smider det i et lop
+        let mut server = websocket::sync::Server::bind("0.0.0.0:6996").unwrap();
+        while let Ok(conn) = server.accept() {
+            let addr = conn.origin().map(str::to_string);
+            let Ok(client) = conn.accept() else {
+                eprintln!("Failed to accept client from conn: {:?}", addr);
+                continue;
+            };
+            let msg_sx = main_sx.clone();
+            let writer_sx = writer_sx.clone();
+            thread::spawn(move || client_loop(msg_sx, client, writer_sx));
+        }
     }
 }
 #[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Hash, Serialize, Deserialize)]

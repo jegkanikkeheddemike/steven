@@ -82,7 +82,7 @@ class GameCard {
                     Color(0xffe16b5c),
                     Color(0xfff39060),
                     Color(0xffffb56b),
-                  ], // Gradient from https://learnui.design/tools/gradient-generator.html
+                  ],
                   tileMode: TileMode.mirror,
                 ))
             : BoxDecoration(
@@ -95,43 +95,43 @@ class GameCard {
             : Center(
                 child: Stack(children: [
                 Align(
-                    alignment: Alignment.topLeft, child: currentCard.getIcon()),
+                    alignment: Alignment.topLeft,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        currentCard.getIcon(),
+                        const Spacer(),
+                        Text(currentCard.name()),
+                        const Spacer(),
+                        currentCard.getIcon(),
+                      ],
+                    )),
                 Align(
                     alignment: Alignment.center,
                     child: SizedBox(
-                        width: 260, child: Text(currentCard.toString())))
+                        width: 240,
+                        child: Center(
+                            child: Text(
+                          currentCard.toString(),
+                          style: TextStyle(fontSize: 20),
+                        )))),
               ])));
   }
 
   Widget getIcon() {
     var icon = color == CardColor.hearts
-        ? const Icon(
-            Icons.favorite,
-            color: Colors.pink,
-            size: 50,
-          )
+        ? const Image(width: 50, image: AssetImage('assets/HEARTS.png'))
         : color == CardColor.spades
-            ? const Icon(
-                Icons.construction,
-                color: Color.fromARGB(255, 24, 124, 173),
-                size: 50,
-              )
+            ? const Image(width: 50, image: AssetImage('assets/SPADES.png'))
             : color == CardColor.diamonds
-                ? const Icon(
-                    Icons.bakery_dining_rounded,
-                    color: Colors.pink,
-                    size: 50,
-                  )
-                : const Icon(
-                    Icons.spa,
-                    color: Color.fromARGB(255, 24, 124, 173),
-                    size: 50,
-                  );
+                ? const Image(
+                    width: 50, image: AssetImage('assets/DIAMONDS.png'))
+                : const Image(width: 50, image: AssetImage('assets/CLUBS.png'));
     return icon;
   }
 
-  @override
-  String toString() {
+  String name() {
     String colorName = "";
     if (color == CardColor.clubs) {
       colorName = "Clubs";
@@ -142,38 +142,60 @@ class GameCard {
     } else if (color == CardColor.spades) {
       colorName = "Spades";
     }
+
     if (i == 13) {
-      return "King of $colorName\n\n You are now the King";
+      return "King of $colorName";
+    }
+    if (i == 12) {
+      return "Queen of $colorName";
+    }
+    if (i == 11) {
+      return "Jack of $colorName";
+    }
+    if (i == 7) {
+      return "STEVEN";
+    }
+    if (i == 1) {
+      return "Ace of $colorName";
+    }
+    return "$i of $colorName";
+  }
+
+  @override
+  String toString() {
+    if (i == 13) {
+      return "You are now the King";
     } else if (i == 12) {
-      return "Queen of $colorName\n\n All ladies Cheers!!";
+      return "All ladies Cheers!!";
     } else if (i == 11) {
-      return "Jack\n\n All gentlemen Cheers!!";
+      return "All gentlemen Cheers!!";
     } else if (i == 0) {
       return "Welcome to a game of Steven";
     } else if (i == 1) {
-      return "ES of $colorName\n\n You got a Sniper\n\n With this cand you can snip another player";
+      return "Sniper\n\nWith this card you can snip another player";
     } else if (i == 3) {
-      return "3 of $colorName\n\n Blind or mute\n\n You can decide to be blind or mute, until the next '3' is drawn\n Penalty for violating is 4 sips!";
+      return "Blind or mute\n\nYou can decide to be blind or mute, until the next '3' is drawn\n Penalty for violating is 4 sips!";
     } else if (i == 2) {
       if (color == CardColor.clubs || color == CardColor.spades) {
-        return "2 of $colorName\n\n You must drink 2 sips!";
+        return "You must drink 2 sips!";
       } else {
-        return "2 of $colorName\n\n You can give away 2 sips";
+        return "You can give away 2 sips";
       }
     } else if (i == 4) {
-      return "4 of $colorName\n\n \"Thumb\"\n\n At any time you can place your thumb of the edge of the table,\n the last person to also place their thumb on the table must drink 4 sips";
+      return "\"Thumb\"\n\n At any time you can place your thumb of the edge of the table,\n the last person to also place their thumb on the table must drink 4 sips";
     } else if (i == 5) {
-      return "5 of $colorName\n\n \"Viking\"\n\n At any time you can use your hands to form viking horns\n The last person to start rowing must drink 4 sips";
+      return "\"Viking\"\n\n At any time you can use your hands to form viking horns\n The last person to start rowing must drink 4 sips";
     } else if (i == 6) {
-      return "6 of $colorName\n\n \"Wall\"\n\n At any time you may touch a wall and shout \"Wall\"\n The last person to also touch a wall must drink 4 sips";
+      return "Wall\n\nAt any time you may touch a wall and shout \"Wall\"\nThe last person to also touch a wall must drink 4 sips";
     } else if (i == 7) {
-      return "STEVEN\n\n You are Steven! \n Meaning you are paralyzed, you must appoint a 'helper' that will help you with EVERYTING! \n Feeling thirsty? The helper will help you drink \n Need to you the restroom? Your helper will carry you if that's what it takes \n Anything else in the game, No worries you've got a helper! \n\n You will remain Steven until another person is chosen to be Steven.";
+      return "You are paralyzed, you must appoint a 'helper' to will help you with EVERYTHING!\n\nYou will remain Steven until another person is chosen to be Steven.";
+      // Feeling thirsty? The helper will help you drink \n Need to you the restroom? Your helper will carry you if that's what it takes \n Anything else in the game, No worries you've got a helper! \n\n
     } else if (i == 8) {
-      return "8 of $colorName\n\n \"Date\"\n\n Choose a person that you are on a date with, the two of you will have to take all your sips together!";
+      return "Date\n\nChoose a person to go on a date with\nThe two of you will share all penalties";
     } else if (i == 9) {
-      return "9 of $colorName\n\n \"Min Pik er\" or \"My Dick is\"\n\n You have to start a sentace with \"Min Pik er\" followed by a word that describes you penis \n Every other player will have to find a new word with the same starting letter to describe their penis \n This continues until someone fail to find a word \n The penalty for loosing is 4 sips";
+      return "\"Min Pik er...\"\n\nFinish the sentence \"Min Pik er...\"\nTake turns, all words must have the same starting letter, as the first word\nThe penalty for loosing is 4 sips";
     } else if (i == 10) {
-      return "10 of $colorName\n\n \"Category\"\n\n Pick a category and name a thing from the category, the next person has to find a new thing in the category and so on \n repetintiopn of a thing that has already been said \n or not being able to come up with anything \n will result in a penalty of 4 sips";
+      return "\"Category\"\n\n Pick a category and name a thing from the category, the next person has to find a new thing in the category and so on \n repetintiopn of a thing that has already been said \n or not being able to come up with anything \n will result in a penalty of 4 sips";
     }
     return i.toString();
   }

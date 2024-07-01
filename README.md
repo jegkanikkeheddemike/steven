@@ -1,6 +1,6 @@
 # steven
 
-Drinking game for chads
+Drinking game for nerds
 
 
 ## Flow

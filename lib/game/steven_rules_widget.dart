@@ -195,7 +195,7 @@ class GameCard {
     } else if (i == 9) {
       return "\"Min Pik er...\"\n\nFinish the sentence \"Min Pik er...\"\nTake turns, all words must have the same starting letter, as the first word\nThe penalty for loosing is 4 sips";
     } else if (i == 10) {
-      return "\"Category\"\n\n Pick a category and name a thing from the category, the next person has to find a new thing in the category and so on \n repetintiopn of a thing that has already been said \n or not being able to come up with anything \n will result in a penalty of 4 sips";
+      return "\"Category\"\nPick a category and name a thing from the category, the next person has to find a new thing in the category and so on \nRepetitions or inability to continue will end the game and the loser drinks 4 sips";
     }
     return i.toString();
   }

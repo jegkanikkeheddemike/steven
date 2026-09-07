@@ -1,0 +1,8 @@
+services:
+  steven:
+    build: .
+    container_name: steven-server
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:6996:6996"

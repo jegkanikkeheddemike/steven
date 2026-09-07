@@ -1,3 +1,5 @@
+name: steven-server
+
 services:
   steven:
     build: .
